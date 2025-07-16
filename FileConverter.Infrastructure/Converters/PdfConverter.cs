@@ -1,3 +1,5 @@
+using System.Text;
+using System.Text.RegularExpressions;
 using FileConverter.Domain.Abstractions;
 using PdfSharpCore.Drawing;
 using PdfSharpCore.Pdf;
@@ -41,5 +43,44 @@ public class PdfConverter : IFileConverter
         document.Save(ms);
         
         return ms.ToArray();
+    }
+
+    public async Task<string> ReadContentAsync(Stream pdfStream, CancellationToken cancellationToken)
+    {
+        using var memoryStream = new MemoryStream();
+        await pdfStream.CopyToAsync(memoryStream, cancellationToken);
+        memoryStream.Position = 0;
+
+        var sb = new StringBuilder();
+        using var document = UglyToad.PdfPig.PdfDocument.Open(memoryStream);
+
+        foreach (var page in document.GetPages())
+        {
+            var lines = page.Text.Split(['\n', '\r'], StringSplitOptions.RemoveEmptyEntries);
+
+            foreach (var line in lines)
+            {
+                var cleanedLine = line
+                    .Replace("\u0000", "")      
+                    .Replace("\f", "")          
+                    .Trim();
+
+                if (!string.IsNullOrWhiteSpace(cleanedLine))
+                {
+                    sb.AppendLine(FixSpacing(cleanedLine));
+                }
+            }
+        }
+
+        return sb.ToString();
+    }
+    
+    private static string FixSpacing(string input)
+    {
+        var withSpaces = Regex.Replace(input, @"(?<=[а-яa-z])(?=[А-ЯA-Z])", " ");
+        
+        withSpaces = Regex.Replace(withSpaces, @"\s{2,}", " ");
+
+        return withSpaces.Trim();
     }
 }

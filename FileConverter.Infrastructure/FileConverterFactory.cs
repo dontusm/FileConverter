@@ -19,6 +19,7 @@ public class FileConverterFactory : IFileConverterFactory
         return contentType switch
         {
             "text/plain" => _provider.GetRequiredService<PdfConverter>(),
+            "application/pdf" => _provider.GetRequiredService<PdfConverter>(),
             _ => throw new NotSupportedException($"Unsupported content type: {contentType}")
         };
     }

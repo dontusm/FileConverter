@@ -25,4 +25,14 @@ public class FileController : ControllerBase
         
         return File(pdfBytes, "application/pdf", "converted.pdf");
     }
+
+    [HttpPost("read-pdf")]
+    public async Task<IActionResult> ReadPdf(IFormFile file)
+    {
+        await using var stream = file.OpenReadStream();
+        
+        var content = await _mediator.Send(new ReadPdfContentQuery(stream, file.ContentType));
+        
+        return Ok(new { Content = content });
+    }
 }
