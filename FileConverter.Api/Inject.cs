@@ -6,13 +6,10 @@ public static class Inject
     {
         services.AddControllers();
         services.AddEndpointsApiExplorer();
-        services.AddSwaggerGen(options =>
+        services.AddOpenApiDocument(config =>
         {
-            options.SwaggerDoc("v1", new Microsoft.OpenApi.Models.OpenApiInfo
-            {
-                Title = "FileConverter API",
-                Version = "v1"
-            });
+            config.Title = "FileConverter API";
+            config.Version = "v1";
         });
         
         return services;
