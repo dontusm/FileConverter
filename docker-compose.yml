@@ -1,0 +1,6 @@
+﻿services:
+  fileconverter.api:
+    image: fileconverter.api
+    build:
+      context: .
+      dockerfile: FileConverter.Api/Dockerfile
