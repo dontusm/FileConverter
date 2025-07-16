@@ -1,4 +1,5 @@
 using FileConverter.Api;
+using FileConverter.Api.Middleware;
 using FileConverter.Application;
 using FileConverter.Infrastructure;
 
@@ -16,6 +17,9 @@ if (app.Environment.IsDevelopment())
     app.UseOpenApi();
     app.UseSwaggerUi(); 
 }
+
+app.UseExceptionHandler("/error"); 
+app.UseMiddleware<ExceptionHandlingMiddleware>(); 
 
 app.MapControllers();
 app.Run();

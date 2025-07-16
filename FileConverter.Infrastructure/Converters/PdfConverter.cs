@@ -4,75 +4,99 @@ using FileConverter.Domain.Abstractions;
 using PdfSharpCore.Drawing;
 using PdfSharpCore.Pdf;
 using FileConverter.Infrastructure.Constants;
+using Microsoft.Extensions.Logging;
 
 namespace FileConverter.Infrastructure.Converters;
 
 public class PdfConverter : IFileConverter
 {
+    private readonly ILogger<PdfConverter>? _logger;
+
+    public PdfConverter(ILogger<PdfConverter>? logger = null)
+    {
+        _logger = logger;
+    }
+
     public async Task<byte[]> ConvertToPdfAsync(Stream inputStream, CancellationToken cancellationToken)
     {
-        using var reader = new StreamReader(inputStream, PdfConstants.FileEncoding);
-        var text = await reader.ReadToEndAsync(cancellationToken);
-
-        var lines = text.Split(["\r\n", "\n"], StringSplitOptions.None);
-
-        using var ms = new MemoryStream();
-        var document = new PdfDocument();
-        var page = document.AddPage();
-        var gfx = XGraphics.FromPdfPage(page);
-        var font = new XFont(PdfConstants.FontFamily, PdfConstants.FontSize, PdfConstants.FontStyle);
-
-        var y = PdfConstants.Margin;
-
-        foreach (var line in lines)
+        try
         {
-            if (y + PdfConstants.LineHeight > page.Height - PdfConstants.Margin)
+            using var reader = new StreamReader(inputStream, PdfConstants.FileEncoding);
+            var text = await reader.ReadToEndAsync(cancellationToken);
+
+            var lines = text.Split(["\r\n", "\n"], StringSplitOptions.None);
+
+            using var ms = new MemoryStream();
+            var document = new PdfDocument();
+            var page = document.AddPage();
+            var gfx = XGraphics.FromPdfPage(page);
+            var font = new XFont(PdfConstants.FontFamily, PdfConstants.FontSize, PdfConstants.FontStyle);
+
+            var y = PdfConstants.Margin;
+
+            foreach (var line in lines)
             {
-                page = document.AddPage();
-                gfx = XGraphics.FromPdfPage(page);
-                y = PdfConstants.Margin;
+                if (y + PdfConstants.LineHeight > page.Height - PdfConstants.Margin)
+                {
+                    page = document.AddPage();
+                    gfx = XGraphics.FromPdfPage(page);
+                    y = PdfConstants.Margin;
+                }
+
+                gfx.DrawString(line, font, XBrushes.Black,
+                    new XRect(PdfConstants.Margin, y, page.Width - 2 * PdfConstants.Margin, page.Height - 2 * PdfConstants.Margin),
+                    XStringFormats.TopLeft);
+
+                y += PdfConstants.LineHeight;
             }
 
-            gfx.DrawString(line, font, XBrushes.Black,
-                new XRect(PdfConstants.Margin, y, page.Width - 2 * PdfConstants.Margin, page.Height - 2 * PdfConstants.Margin),
-                XStringFormats.TopLeft);
+            document.Save(ms);
 
-            y += PdfConstants.LineHeight;
+            return ms.ToArray();
         }
-
-        document.Save(ms);
-        
-        return ms.ToArray();
+        catch (Exception ex)
+        {
+            _logger?.LogError(ex, "Error converting stream to PDF");
+            throw new InvalidOperationException("Failed to convert input stream to PDF", ex);
+        }
     }
 
     public async Task<string> ReadContentAsync(Stream pdfStream, CancellationToken cancellationToken)
     {
-        using var memoryStream = new MemoryStream();
-        await pdfStream.CopyToAsync(memoryStream, cancellationToken);
-        memoryStream.Position = 0;
-
-        var sb = new StringBuilder();
-        using var document = UglyToad.PdfPig.PdfDocument.Open(memoryStream);
-
-        foreach (var page in document.GetPages())
+        try
         {
-            var lines = page.Text.Split(['\n', '\r'], StringSplitOptions.RemoveEmptyEntries);
+            using var memoryStream = new MemoryStream();
+            await pdfStream.CopyToAsync(memoryStream, cancellationToken);
+            memoryStream.Position = 0;
 
-            foreach (var line in lines)
+            var sb = new StringBuilder();
+            using var document = UglyToad.PdfPig.PdfDocument.Open(memoryStream);
+
+            foreach (var page in document.GetPages())
             {
-                var cleanedLine = line
-                    .Replace("\u0000", "")      
-                    .Replace("\f", "")          
-                    .Trim();
+                var lines = page.Text.Split(['\n', '\r'], StringSplitOptions.RemoveEmptyEntries);
 
-                if (!string.IsNullOrWhiteSpace(cleanedLine))
+                foreach (var line in lines)
                 {
-                    sb.AppendLine(FixSpacing(cleanedLine));
+                    var cleanedLine = line
+                        .Replace("\u0000", "")
+                        .Replace("\f", "")
+                        .Trim();
+
+                    if (!string.IsNullOrWhiteSpace(cleanedLine))
+                    {
+                        sb.AppendLine(FixSpacing(cleanedLine));
+                    }
                 }
             }
-        }
 
-        return sb.ToString();
+            return sb.ToString();
+        }
+        catch (Exception ex)
+        {
+            _logger?.LogError(ex, "Error reading PDF content");
+            throw new InvalidOperationException("Failed to read content from PDF stream", ex);
+        }
     }
     
     private static string FixSpacing(string input)
