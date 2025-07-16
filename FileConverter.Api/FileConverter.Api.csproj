@@ -15,12 +15,6 @@
     </ItemGroup>
 
     <ItemGroup>
-      <Content Include="..\.dockerignore">
-        <Link>.dockerignore</Link>
-      </Content>
-    </ItemGroup>
-
-    <ItemGroup>
       <ProjectReference Include="..\FileConverter.Application\FileConverter.Application.csproj" />
       <ProjectReference Include="..\FileConverter.Domain\FileConverter.Domain.csproj" />
       <ProjectReference Include="..\FileConverter.Infrastructure\FileConverter.Infrastructure.csproj" />

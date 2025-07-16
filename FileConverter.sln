@@ -2,11 +2,6 @@
 Microsoft Visual Studio Solution File, Format Version 12.00
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "FileConverter.Api", "FileConverter.Api\FileConverter.Api.csproj", "{6A1A927F-7A74-419F-985E-F8B2C69A87EC}"
 EndProject
-Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Solution Items", "Solution Items", "{A844FAA9-360F-4A0E-864D-B2A15B3CDEF7}"
-	ProjectSection(SolutionItems) = preProject
-		docker-compose.yml = docker-compose.yml
-	EndProjectSection
-EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "FileConverter.Domain", "FileConverter.Domain\FileConverter.Domain.csproj", "{59CD394B-C1F2-4D36-BC13-19C4B2299296}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "FileConverter.Application", "FileConverter.Application\FileConverter.Application.csproj", "{94D310E7-3BDB-49AB-AAD6-450646EAED47}"
