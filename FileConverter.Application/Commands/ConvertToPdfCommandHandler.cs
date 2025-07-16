@@ -15,6 +15,6 @@ public class ConvertToPdfHandler : IRequestHandler<ConvertToPdfCommand, byte[]>
     public Task<byte[]> Handle(ConvertToPdfCommand request, CancellationToken cancellationToken)
     {
         var converter = _factory.GetConverter(request.ContentType);
-        return converter.ConvertToPdfAsync(request.FileStream);
+        return converter.ConvertToPdfAsync(request.FileStream, cancellationToken);
     }
 }

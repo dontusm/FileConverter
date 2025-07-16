@@ -7,10 +7,10 @@ namespace FileConverter.Infrastructure.Converters;
 
 public class PdfConverter : IFileConverter
 {
-    public async Task<byte[]> ConvertToPdfAsync(Stream inputStream)
+    public async Task<byte[]> ConvertToPdfAsync(Stream inputStream, CancellationToken cancellationToken)
     {
         using var reader = new StreamReader(inputStream, PdfConstants.FileEncoding);
-        var text = await reader.ReadToEndAsync();
+        var text = await reader.ReadToEndAsync(cancellationToken);
 
         var lines = text.Split(["\r\n", "\n"], StringSplitOptions.None);
 
@@ -20,7 +20,7 @@ public class PdfConverter : IFileConverter
         var gfx = XGraphics.FromPdfPage(page);
         var font = new XFont(PdfConstants.FontFamily, PdfConstants.FontSize, PdfConstants.FontStyle);
 
-        double y = PdfConstants.Margin;
+        var y = PdfConstants.Margin;
 
         foreach (var line in lines)
         {
