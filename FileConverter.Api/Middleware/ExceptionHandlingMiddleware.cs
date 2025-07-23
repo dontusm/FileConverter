@@ -14,7 +14,7 @@ namespace FileConverter.Api.Middleware
             _logger = logger;
         }
 
-        public async Task Invoke(HttpContext context)
+        public async Task Invoke(HttpContext context, Exception exception, CancellationToken cancellationToken)
         {
             try
             {
@@ -22,12 +22,12 @@ namespace FileConverter.Api.Middleware
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, "Произошла ошибка: {Message}", ex.Message);
-                await HandleExceptionAsync(context, ex);
+                _logger.LogError(ex, "Произошла ошибка: {Message}", ex.ToString());
+                await HandleExceptionAsync(context, ex, cancellationToken);
             }
         }
 
-        private static Task HandleExceptionAsync(HttpContext context, Exception exception)
+        private static Task HandleExceptionAsync(HttpContext context, Exception exception, CancellationToken cancellationToken)
         {
             var response = context.Response;
             response.ContentType = "application/json";
@@ -45,7 +45,7 @@ namespace FileConverter.Api.Middleware
                 statusCode = response.StatusCode
             });
 
-            return response.WriteAsync(result);
+            return response.WriteAsync(result, cancellationToken);
         }
     }
 }
